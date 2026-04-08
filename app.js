@@ -114,6 +114,7 @@ async function loadAll() {
     refreshPolygonStyles();
     updateLegend();
     renderRankingList();
+    updateZoomLabel();
     stampUpdated();
   } catch (err) {
     console.error(err);
@@ -234,6 +235,7 @@ function onClickZip(zip) {
   refreshPolygonStyles();
   updateSidebar(zip);
   renderRankingList();
+  updateZoomLabel();
 }
 
 function clearSelection() {
@@ -242,6 +244,7 @@ function clearSelection() {
   document.getElementById('sidebar-empty').style.display   = '';
   document.getElementById('sidebar-content').style.display = 'none';
   renderRankingList();
+  updateZoomLabel();
 }
 
 function onEnter(e, zip) {
@@ -470,6 +473,41 @@ async function refreshData() {
     btn.disabled = false;
     icon.classList.remove('spinning');
   }
+}
+
+// ============================================================
+// ZOOM CONTROL
+// ============================================================
+function zoomToSelection() {
+  if (!geojsonLayer) return;
+
+  map.invalidateSize();
+
+  if (selectedZip) {
+    // Zoom to selected ZIP only
+    let layer = null;
+    geojsonLayer.eachLayer(l => {
+      if (getZip(l.feature) === selectedZip) layer = l;
+    });
+    if (layer) {
+      map.fitBounds(layer.getBounds(), { padding: [60, 60] });
+    }
+  } else {
+    // Zoom to all ZIPs
+    map.fitBounds(geojsonLayer.getBounds(), { padding: [24, 24] });
+  }
+
+  updateZoomLabel();
+}
+
+function updateZoomLabel() {
+  const label = document.getElementById('zoom-label');
+  label.textContent = selectedZip ? 'Zoom Out' : 'Zoom All';
+}
+
+// Update label when selection changes
+function updateZoomLabelOnSelect() {
+  updateZoomLabel();
 }
 
 // ============================================================
