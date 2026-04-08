@@ -187,7 +187,7 @@ function styleFor(zip) {
   const selected = zip === selectedZip;
   return {
     fillColor:   getColor(zip),
-    fillOpacity: selected ? 0.72 : 0.50,
+    fillOpacity: selected ? 0.62 : 0.38,
     color:       selected ? '#1d4ed8' : '#ffffff',
     weight:      selected ? 2.5 : 1,
     opacity:     1,
@@ -246,7 +246,7 @@ function clearSelection() {
 
 function onEnter(e, zip) {
   if (zip !== selectedZip) {
-    e.target.setStyle({ fillOpacity: 0.68, weight: 2, color: '#94a3b8' });
+    e.target.setStyle({ fillOpacity: 0.52, weight: 2, color: '#94a3b8' });
     e.target.bringToFront();
   }
   showTooltip(e, zip);
@@ -389,10 +389,6 @@ function updateLegend(range) {
     <div class="legend-labels">
       <span class="legend-label">${metric.format(range.min)}</span>
       <span class="legend-label">${metric.format(range.max)}</span>
-    </div>
-    <div class="legend-na">
-      <div class="legend-na-swatch"></div>
-      <span class="legend-na-label">No data</span>
     </div>
   `;
 }
