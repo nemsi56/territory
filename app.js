@@ -47,14 +47,14 @@ const METRICS = {
     shortLabel: 'Income',
     censusVar:  'B19013_001E',
     format:     v => (v != null && v > 0) ? '$' + v.toLocaleString() : 'N/A',
-    colors:     ['#fff5eb', '#fd8d3c', '#b83200'],
+    colors:     ['#fef3e2', '#f6a623', '#c05c00'],
   },
   households: {
     label:      'Total Households',
     shortLabel: 'Households',
     censusVar:  'B11001_001E',
     format:     v => (v != null && v > 0) ? v.toLocaleString() : 'N/A',
-    colors:     ['#faf5ff', '#a78bfa', '#4c1d95'],
+    colors:     ['#f0f4ff', '#7b9ef0', '#1a3a8f'],
   },
 };
 
@@ -226,7 +226,7 @@ function styleFor(zip) {
   const selected = zip === selectedZip;
   return {
     fillColor:   getColor(zip),
-    fillOpacity: selected ? 0.35 : 0.15,
+    fillOpacity: selected ? 0.40 : 0.18,
     color:       selected ? '#1d4ed8' : '#ffffff',
     weight:      selected ? 2.5 : 1,
     opacity:     1,
@@ -288,7 +288,7 @@ function clearSelection() {
 
 function onEnter(e, zip) {
   if (zip !== selectedZip) {
-    e.target.setStyle({ fillOpacity: 0.25, weight: 2, color: '#94a3b8' });
+    e.target.setStyle({ fillOpacity: 0.28, weight: 2, color: '#94a3b8' });
     e.target.bringToFront();
   }
   showTooltip(e, zip);
@@ -523,13 +523,15 @@ function zoomToSelection() {
   map.invalidateSize();
 
   if (selectedZip && !isZoomedToSelection) {
-    // Zoom to selected ZIP only
+    // Zoom to selected ZIP only — fit tight then nudge one level in
     let layer = null;
     geojsonLayer.eachLayer(l => {
       if (getZip(l.feature) === selectedZip) layer = l;
     });
     if (layer) {
-      map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+      const bounds = layer.getBounds();
+      const zoom   = map.getBoundsZoom(bounds) + 1;
+      map.setView(bounds.getCenter(), zoom);
       isZoomedToSelection = true;
     }
   } else {
