@@ -68,7 +68,7 @@ const NA_COLOR    = '#cbd5e1';
 let map, lightTiles, darkTiles, geojsonLayer;
 let demoData           = {};
 let selectedZip        = null;
-let activeMetric       = 'income';
+let activeMetric       = null;   // null = no overlay (default)
 let colorScale         = null;
 let isDark             = false;
 let rankReversed       = false;
@@ -225,13 +225,26 @@ function renderPolygons(geo) {
 
 function styleFor(zip) {
   const selected = zip === selectedZip;
-  // When zoomed into a selection, show only the border — no fill
+
+  // Zoomed into selection: always just a border, no fill
   if (selected && isZoomedToSelection) {
-    return { fillColor: getColor(zip), fillOpacity: 0, color: '#1d4ed8', weight: 3, opacity: 1 };
+    return { fillOpacity: 0, color: '#1d4ed8', weight: 3, opacity: 1 };
   }
+
+  // No metric selected: blue borders only, no fill
+  if (!activeMetric) {
+    return {
+      fillOpacity: 0,
+      color:  selected ? '#1d4ed8' : '#3b82f6',
+      weight: selected ? 2.5 : 1.5,
+      opacity: 1,
+    };
+  }
+
+  // Metric active: choropleth fill
   return {
     fillColor:   getColor(zip),
-    fillOpacity: selected ? 0.40 : 0.18,
+    fillOpacity: selected ? 0.45 : 0.25,
     color:       selected ? '#1d4ed8' : '#ffffff',
     weight:      selected ? 2.5 : 1,
     opacity:     1,
@@ -242,6 +255,7 @@ function styleFor(zip) {
 // COLOR SCALE
 // ============================================================
 function buildColorScale() {
+  if (!activeMetric) { colorScale = null; return null; }
   const values = ZIPS
     .map(z => demoData[z]?.[activeMetric])
     .filter(v => v != null && v > 0);
@@ -293,7 +307,11 @@ function clearSelection() {
 
 function onEnter(e, zip) {
   if (zip !== selectedZip) {
-    e.target.setStyle({ fillOpacity: 0.28, weight: 2, color: '#94a3b8' });
+    e.target.setStyle({
+      fillOpacity: activeMetric ? 0.30 : 0,
+      weight: 2,
+      color: activeMetric ? '#94a3b8' : '#2563eb',
+    });
     e.target.bringToFront();
   }
   showTooltip(e, zip);
@@ -314,14 +332,13 @@ const tooltip = document.getElementById('tooltip');
 function showTooltip(e, zip) {
   const info   = ZIP_INFO[zip] || {};
   const data   = demoData[zip] || {};
-  const metric = METRICS[activeMetric];
-  const value  = data[activeMetric];
+  const metric = activeMetric ? METRICS[activeMetric] : null;
+  const value  = metric ? data[activeMetric] : null;
 
   tooltip.innerHTML = `
     <div class="tt-zip">${zip}</div>
     <div class="tt-city">${info.city || ''}, ${info.state || ''}</div>
-    <div class="tt-value">${metric.format(value)}</div>
-    <div class="tt-label">${metric.shortLabel}</div>
+    ${metric ? `<div class="tt-value">${metric.format(value)}</div><div class="tt-label">${metric.shortLabel}</div>` : '<div class="tt-label">Click to select</div>'}
   `;
   moveTooltip(e);
   tooltip.classList.add('visible');
@@ -399,11 +416,12 @@ function updateSidebar(zip) {
 // METRIC SWITCHING
 // ============================================================
 function setMetric(metric) {
-  if (!METRICS[metric] || metric === activeMetric) return;
-  activeMetric = metric;
+  if (!METRICS[metric]) return;
+  // Toggle off if already active, otherwise switch to it
+  activeMetric = (activeMetric === metric) ? null : metric;
 
   document.querySelectorAll('.metric-tab').forEach(btn =>
-    btn.classList.toggle('active', btn.dataset.metric === metric)
+    btn.classList.toggle('active', btn.dataset.metric === activeMetric)
   );
 
   buildColorScale();
@@ -418,6 +436,8 @@ function setMetric(metric) {
 // ============================================================
 function updateLegend(range) {
   const legend = document.getElementById('legend');
+  if (!activeMetric) { legend.innerHTML = ''; return; }
+
   const metric = METRICS[activeMetric];
 
   if (!range) {
@@ -446,12 +466,13 @@ function updateLegend(range) {
 function renderRankingList() {
   const section = document.getElementById('ranking-section');
   const list    = document.getElementById('ranking-list');
-  const metric  = METRICS[activeMetric];
+  const sortKey = activeMetric || 'income';   // default sort by income
+  const metric  = METRICS[sortKey];
 
   const items = ZIPS.map(z => ({
     zip:   z,
     info:  ZIP_INFO[z] || {},
-    value: demoData[z]?.[activeMetric] ?? null,
+    value: demoData[z]?.[sortKey] ?? null,
   })).sort((a, b) => {
     if (a.value == null && b.value == null) return 0;
     if (a.value == null) return 1;
