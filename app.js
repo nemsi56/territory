@@ -436,7 +436,8 @@ function setMetric(metric) {
 // ============================================================
 function updateLegend(range) {
   const legend = document.getElementById('legend');
-  if (!activeMetric) { legend.innerHTML = ''; return; }
+  if (!activeMetric) { legend.innerHTML = ''; legend.style.display = 'none'; return; }
+  legend.style.display = '';
 
   const metric = METRICS[activeMetric];
 
@@ -698,10 +699,7 @@ async function performSearch() {
       fillOpacity: 0.90,
     }).addTo(map);
 
-    map.setView(latlng, 16);
-
-    // Auto-clear marker after 6 s
-    setTimeout(clearSearchMarker, 6000);
+    map.setView(latlng, 14);
 
   } catch (err) {
     console.error('Search error:', err);
