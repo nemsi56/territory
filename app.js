@@ -631,6 +631,100 @@ function stampUpdated() {
 }
 
 // ============================================================
+// SEARCH  (Nominatim / OpenStreetMap geocoding)
+// ============================================================
+let searchMarker = null;
+
+function toggleSearch() {
+  const wrapper = document.getElementById('search-wrapper');
+  const input   = document.getElementById('search-input');
+  const btn     = document.getElementById('search-btn');
+  const isOpen  = wrapper.classList.contains('open');
+
+  if (isOpen) {
+    closeSearch();
+  } else {
+    wrapper.classList.add('open');
+    btn.classList.add('active');
+    setTimeout(() => input.focus(), 200);
+  }
+}
+
+function closeSearch() {
+  const wrapper = document.getElementById('search-wrapper');
+  const input   = document.getElementById('search-input');
+  const btn     = document.getElementById('search-btn');
+  wrapper.classList.remove('open');
+  btn.classList.remove('active');
+  input.value = '';
+  clearSearchMarker();
+}
+
+function handleSearchKey(e) {
+  if (e.key === 'Enter')  performSearch();
+  if (e.key === 'Escape') closeSearch();
+}
+
+async function performSearch() {
+  const input = document.getElementById('search-input');
+  const q     = input.value.trim();
+  if (!q) return;
+
+  input.disabled = true;
+  clearSearchMarker();
+
+  try {
+    // Bias toward DC Metro area; countrycodes=us keeps it domestic
+    const viewbox = '-77.65,39.25,-76.85,38.80';
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us&viewbox=${viewbox}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) throw new Error(`Nominatim ${res.status}`);
+    const results = await res.json();
+
+    if (!results.length) {
+      flashSearchError(input);
+      return;
+    }
+
+    const { lat, lon } = results[0];
+    const latlng = [parseFloat(lat), parseFloat(lon)];
+
+    // Drop a red dot on the result
+    searchMarker = L.circleMarker(latlng, {
+      radius:      9,
+      fillColor:   '#ef4444',
+      color:       '#ffffff',
+      weight:      2.5,
+      fillOpacity: 0.90,
+    }).addTo(map);
+
+    map.setView(latlng, 16);
+
+    // Auto-clear marker after 6 s
+    setTimeout(clearSearchMarker, 6000);
+
+  } catch (err) {
+    console.error('Search error:', err);
+    flashSearchError(input);
+  } finally {
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+function flashSearchError(input) {
+  input.classList.add('search-error');
+  setTimeout(() => input.classList.remove('search-error'), 1500);
+}
+
+function clearSearchMarker() {
+  if (searchMarker) {
+    map.removeLayer(searchMarker);
+    searchMarker = null;
+  }
+}
+
+// ============================================================
 // START
 // ============================================================
 init();

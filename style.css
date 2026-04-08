@@ -637,6 +637,55 @@ body {
 .leaflet-control-zoom a:hover { background: var(--surface-2) !important; color: var(--text-1) !important; }
 
 /* ============================================================
+   Search Bar
+   ============================================================ */
+.search-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-1);
+  background: var(--surface-2);
+  outline: none;
+  transition: max-width 250ms ease, opacity 180ms ease, padding 250ms ease, border-color 180ms ease, margin 250ms ease;
+}
+.search-wrapper.open .search-input {
+  max-width: 240px;
+  opacity: 1;
+  padding: 0 10px;
+  border-color: var(--accent);
+  margin-right: 4px;
+}
+.search-input::placeholder { color: var(--text-3); }
+.search-input:focus { border-color: var(--accent-dark); }
+
+.search-input.search-error {
+  border-color: #ef4444 !important;
+  animation: shake 0.35s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-5px); }
+  75%       { transform: translateX(5px); }
+}
+
+#search-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ============================================================
    Spinning animation (refresh icon)
    ============================================================ */
 .spinning { animation: spin .75s linear infinite; }

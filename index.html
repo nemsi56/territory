@@ -26,6 +26,17 @@
     </div>
     <div class="header-actions">
       <span id="last-updated" class="last-updated"></span>
+      <div class="search-wrapper" id="search-wrapper">
+        <input type="text" id="search-input" class="search-input"
+               placeholder="Search address, street, park…"
+               onkeydown="handleSearchKey(event)"
+               autocomplete="off">
+      </div>
+      <button id="search-btn" class="btn btn-icon" onclick="toggleSearch()" title="Search the map">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
       <button id="refresh-btn" class="btn btn-secondary" onclick="refreshData()">
         <svg id="refresh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
@@ -111,6 +122,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>
