@@ -219,11 +219,16 @@ function renderPolygons(geo) {
   }).addTo(map);
 
   map.invalidateSize();
-  map.fitBounds(geojsonLayer.getBounds(), { padding: [0, 0] });
+  const initBounds = geojsonLayer.getBounds();
+  map.setView(initBounds.getCenter(), map.getBoundsZoom(initBounds, false));
 }
 
 function styleFor(zip) {
   const selected = zip === selectedZip;
+  // When zoomed into a selection, show only the border — no fill
+  if (selected && isZoomedToSelection) {
+    return { fillColor: getColor(zip), fillOpacity: 0, color: '#1d4ed8', weight: 3, opacity: 1 };
+  }
   return {
     fillColor:   getColor(zip),
     fillOpacity: selected ? 0.40 : 0.18,
@@ -523,20 +528,21 @@ function zoomToSelection() {
   map.invalidateSize();
 
   if (selectedZip && !isZoomedToSelection) {
-    // Zoom to selected ZIP only — fit tight then nudge one level in
+    // Zoom to selected ZIP — fit exactly to bounds, no overshoot
     let layer = null;
     geojsonLayer.eachLayer(l => {
       if (getZip(l.feature) === selectedZip) layer = l;
     });
     if (layer) {
       const bounds = layer.getBounds();
-      const zoom   = map.getBoundsZoom(bounds) + 1;
-      map.setView(bounds.getCenter(), zoom);
+      map.setView(bounds.getCenter(), map.getBoundsZoom(bounds, false));
       isZoomedToSelection = true;
+      refreshPolygonStyles(); // clear fill now that we're zoomed in
     }
   } else {
-    // Zoom to all ZIPs (or no selection)
-    map.fitBounds(geojsonLayer.getBounds(), { padding: [0, 0] });
+    // Zoom to all ZIPs — tightest fit that keeps all in frame
+    const bounds = geojsonLayer.getBounds();
+    map.setView(bounds.getCenter(), map.getBoundsZoom(bounds, false));
     isZoomedToSelection = false;
   }
 
