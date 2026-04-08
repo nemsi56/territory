@@ -66,12 +66,13 @@ const NA_COLOR    = '#cbd5e1';
 // STATE
 // ============================================================
 let map, lightTiles, darkTiles, geojsonLayer;
-let demoData     = {};
-let selectedZip  = null;
-let activeMetric = 'income';
-let colorScale   = null;
-let isDark       = false;
-let rankReversed = false;
+let demoData           = {};
+let selectedZip        = null;
+let activeMetric       = 'income';
+let colorScale         = null;
+let isDark             = false;
+let rankReversed       = false;
+let isZoomedToSelection = false;
 
 // ============================================================
 // INIT
@@ -88,7 +89,44 @@ function initMap() {
     zoomControl: false,
   });
 
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  // Zoom controls + custom zoom button
+  const ZoomControl = L.Control.extend({
+    options: { position: 'bottomright' },
+    onAdd: function(map) {
+      const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+      const zoomIn = L.DomUtil.create('a', 'leaflet-control-zoom-in', container);
+      const zoomOut = L.DomUtil.create('a', 'leaflet-control-zoom-out', container);
+      const zoomCustom = L.DomUtil.create('a', 'leaflet-control-zoom-custom', container);
+
+      zoomIn.href = '#';
+      zoomIn.title = 'Zoom in';
+      zoomIn.textContent = '+';
+      zoomOut.href = '#';
+      zoomOut.title = 'Zoom out';
+      zoomOut.textContent = '−';
+      zoomCustom.href = '#';
+      zoomCustom.id = 'map-zoom-custom-btn';
+      zoomCustom.textContent = 'Zoom to Selection';
+      zoomCustom.style.display = 'none';
+
+      L.DomEvent.on(zoomIn, 'click', e => {
+        L.DomEvent.preventDefault(e);
+        map.zoomIn();
+      });
+      L.DomEvent.on(zoomOut, 'click', e => {
+        L.DomEvent.preventDefault(e);
+        map.zoomOut();
+      });
+      L.DomEvent.on(zoomCustom, 'click', e => {
+        L.DomEvent.preventDefault(e);
+        zoomToSelection();
+      });
+
+      return container;
+    }
+  });
+
+  new ZoomControl().addTo(map);
 
   lightTiles = L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
@@ -181,14 +219,14 @@ function renderPolygons(geo) {
   }).addTo(map);
 
   map.invalidateSize();
-  map.fitBounds(geojsonLayer.getBounds(), { padding: [24, 24] });
+  map.fitBounds(geojsonLayer.getBounds(), { padding: [12, 12] });
 }
 
 function styleFor(zip) {
   const selected = zip === selectedZip;
   return {
     fillColor:   getColor(zip),
-    fillOpacity: selected ? 0.62 : 0.38,
+    fillOpacity: selected ? 0.55 : 0.30,
     color:       selected ? '#1d4ed8' : '#ffffff',
     weight:      selected ? 2.5 : 1,
     opacity:     1,
@@ -240,6 +278,7 @@ function onClickZip(zip) {
 
 function clearSelection() {
   selectedZip = null;
+  isZoomedToSelection = false;
   refreshPolygonStyles();
   document.getElementById('sidebar-empty').style.display   = '';
   document.getElementById('sidebar-content').style.display = 'none';
@@ -249,7 +288,7 @@ function clearSelection() {
 
 function onEnter(e, zip) {
   if (zip !== selectedZip) {
-    e.target.setStyle({ fillOpacity: 0.52, weight: 2, color: '#94a3b8' });
+    e.target.setStyle({ fillOpacity: 0.45, weight: 2, color: '#94a3b8' });
     e.target.bringToFront();
   }
   showTooltip(e, zip);
@@ -483,26 +522,39 @@ function zoomToSelection() {
 
   map.invalidateSize();
 
-  if (selectedZip) {
+  if (selectedZip && !isZoomedToSelection) {
     // Zoom to selected ZIP only
     let layer = null;
     geojsonLayer.eachLayer(l => {
       if (getZip(l.feature) === selectedZip) layer = l;
     });
     if (layer) {
-      map.fitBounds(layer.getBounds(), { padding: [60, 60] });
+      map.fitBounds(layer.getBounds(), { padding: [40, 40] });
+      isZoomedToSelection = true;
     }
   } else {
-    // Zoom to all ZIPs
-    map.fitBounds(geojsonLayer.getBounds(), { padding: [24, 24] });
+    // Zoom to all ZIPs (or no selection)
+    map.fitBounds(geojsonLayer.getBounds(), { padding: [12, 12] });
+    isZoomedToSelection = false;
   }
 
   updateZoomLabel();
 }
 
 function updateZoomLabel() {
-  const label = document.getElementById('zoom-label');
-  label.textContent = selectedZip ? 'Zoom Out' : 'Zoom All';
+  const btn = document.getElementById('map-zoom-custom-btn');
+  if (!btn) return;
+
+  if (!selectedZip) {
+    // No selection: hide button
+    btn.style.display = 'none';
+    isZoomedToSelection = false;
+  } else {
+    // Selection made: show button
+    btn.style.display = '';
+    // Button text depends on whether we're already zoomed to selection
+    btn.textContent = isZoomedToSelection ? 'Zoom All' : 'Zoom to Selection';
+  }
 }
 
 // Update label when selection changes

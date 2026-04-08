@@ -539,7 +539,7 @@ body {
    ============================================================ */
 .legend {
   position: absolute;
-  bottom: 30px;
+  bottom: 120px;
   right: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -590,9 +590,34 @@ body {
 .legend-na-label { font-size: 11px; color: var(--text-3); }
 
 /* ============================================================
-   Leaflet Overrides
+   Leaflet Overrides & Custom Zoom Control
    ============================================================ */
 .leaflet-control-attribution { font-size: 10px !important; }
+
+.leaflet-control-zoom-custom {
+  background: var(--surface) !important;
+  color: var(--text-2) !important;
+  border-bottom-color: var(--border) !important;
+  width: auto !important;
+  padding: 0 8px !important;
+  line-height: 26px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  transition: all var(--t) !important;
+}
+.leaflet-control-zoom-custom[style*="display: none"] {
+  display: none !important;
+}
+.leaflet-control-zoom-custom:not([style*="display: none"]) {
+  display: block !important;
+}
+.leaflet-control-zoom-custom:hover {
+  background: var(--surface-2) !important;
+  color: var(--text-1) !important;
+}
 
 .leaflet-control-zoom {
   border: 1px solid var(--border) !important;
