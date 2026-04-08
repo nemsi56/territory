@@ -219,14 +219,14 @@ function renderPolygons(geo) {
   }).addTo(map);
 
   map.invalidateSize();
-  map.fitBounds(geojsonLayer.getBounds(), { padding: [12, 12] });
+  map.fitBounds(geojsonLayer.getBounds(), { padding: [0, 0] });
 }
 
 function styleFor(zip) {
   const selected = zip === selectedZip;
   return {
     fillColor:   getColor(zip),
-    fillOpacity: selected ? 0.55 : 0.30,
+    fillOpacity: selected ? 0.35 : 0.15,
     color:       selected ? '#1d4ed8' : '#ffffff',
     weight:      selected ? 2.5 : 1,
     opacity:     1,
@@ -288,7 +288,7 @@ function clearSelection() {
 
 function onEnter(e, zip) {
   if (zip !== selectedZip) {
-    e.target.setStyle({ fillOpacity: 0.45, weight: 2, color: '#94a3b8' });
+    e.target.setStyle({ fillOpacity: 0.25, weight: 2, color: '#94a3b8' });
     e.target.bringToFront();
   }
   showTooltip(e, zip);
@@ -529,12 +529,12 @@ function zoomToSelection() {
       if (getZip(l.feature) === selectedZip) layer = l;
     });
     if (layer) {
-      map.fitBounds(layer.getBounds(), { padding: [40, 40] });
+      map.fitBounds(layer.getBounds(), { padding: [20, 20] });
       isZoomedToSelection = true;
     }
   } else {
     // Zoom to all ZIPs (or no selection)
-    map.fitBounds(geojsonLayer.getBounds(), { padding: [12, 12] });
+    map.fitBounds(geojsonLayer.getBounds(), { padding: [0, 0] });
     isZoomedToSelection = false;
   }
 
