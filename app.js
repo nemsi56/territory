@@ -244,7 +244,7 @@ function styleFor(zip) {
   // Metric active: choropleth fill
   return {
     fillColor:   getColor(zip),
-    fillOpacity: selected ? 0.45 : 0.25,
+    fillOpacity: selected ? 0.60 : 0.40,
     color:       selected ? '#1d4ed8' : '#ffffff',
     weight:      selected ? 2.5 : 1,
     opacity:     1,
@@ -308,7 +308,7 @@ function clearSelection() {
 function onEnter(e, zip) {
   if (zip !== selectedZip) {
     e.target.setStyle({
-      fillOpacity: activeMetric ? 0.30 : 0,
+      fillOpacity: activeMetric ? 0.50 : 0,
       weight: 2,
       color: activeMetric ? '#94a3b8' : '#2563eb',
     });
